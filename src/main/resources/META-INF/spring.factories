@@ -1,0 +1,4 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.personal.mysql.actuator.MysqlActuatorEndpointConfiguration,\
+com.personal.mysql.actuator.MysqlHealthIndicator,\
+com.personal.mysql.configure.MysqlAutoConfiguration
