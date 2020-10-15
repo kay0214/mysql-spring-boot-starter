@@ -4,7 +4,7 @@
 package com.personal.mysql.dynamic;
 
 import com.personal.mysql.elect.AbstractDataSourceElector;
-import com.personal.mysql.elect.DefaultDataSourceElector;
+import com.personal.mysql.exception.DataSourceIndexOutOfBoundsException;
 import com.personal.mysql.utils.SpringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,12 +60,10 @@ public class DynamicDataSourceContextHolder {
     public static void useWriteDataSource(Map<String, Object> params, Class<? extends AbstractDataSourceElector> customElector){
         lock.lock();
         try {
-            int datasourceKeyIndex = elect(true, writeDataSourceKeys, params, customElector);
+            int datasourceKeyIndex = elect(true, new ArrayList<>(writeDataSourceKeys), params, customElector);
             CONTEXT_HOLDER.set(writeDataSourceKeys.get(datasourceKeyIndex));
-            log.info("write data source switch [{}]", CONTEXT_HOLDER.get());
         } catch (Exception e) {
-            log.error("Switch write datasource failed, error message is {}", e.getMessage());
-            log.error(e.getMessage());
+            log.error("Switch write datasource failed, error message ==> {}", e.getMessage());
         } finally {
             lock.unlock();
         }
@@ -77,13 +75,13 @@ public class DynamicDataSourceContextHolder {
     public static void useReadDataSource(Map<String, Object> params, Class<? extends AbstractDataSourceElector> customElector){
         lock.lock();
         try {
-            int datasourceKeyIndex = elect(false, readDataSourceKeys, params, customElector);
+            int datasourceKeyIndex = elect(false, new ArrayList<>(readDataSourceKeys), params, customElector);
             CONTEXT_HOLDER.set(readDataSourceKeys.get(datasourceKeyIndex));
-            log.info("read data source switch [{}]", CONTEXT_HOLDER.get());
-        } catch (Exception e) {
-            log.error("Switch read datasource failed, error message is {}", e.getMessage());
+        }catch (DataSourceIndexOutOfBoundsException e){
+            log.error("Switch read datasource failed, error message ==> {}", e.getMessage());
+        }catch (Exception e) {
+            log.error("Switch read datasource failed, error message ==> {}", e.getMessage());
             useWriteDataSource(params, customElector);
-            log.error(e.getMessage());
         } finally {
             lock.unlock();
         }

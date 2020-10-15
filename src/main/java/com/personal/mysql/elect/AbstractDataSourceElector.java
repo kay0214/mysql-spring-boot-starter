@@ -3,8 +3,7 @@
  */
 package com.personal.mysql.elect;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.personal.mysql.exception.DataSourceIndexOutOfBoundsException;
 
 import java.util.List;
 import java.util.Map;
@@ -16,19 +15,17 @@ import java.util.Map;
  */
 public abstract class AbstractDataSourceElector {
 
-    private static final Logger log = LoggerFactory.getLogger(AbstractDataSourceElector.class);
-
     public int elect(boolean isWrite, List<String> dataSource, Map<String, Object> params){
+        int size = dataSource.size();
         int index;
         if(isWrite){
             index = this.doWriteElect(dataSource, params);
         }else{
             index = this.doReadElect(dataSource, params);
         }
-        if(index >= dataSource.size()){
+        if(index >= size){
             // 索引 >= 数据源数量
-            log.error("elect index is [{}], the first dataSource enable", index);
-            return 0;
+            throw new DataSourceIndexOutOfBoundsException(this.getClass().getName());
         }else{
             return index;
         }
